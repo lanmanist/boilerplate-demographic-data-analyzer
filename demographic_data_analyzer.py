@@ -3,42 +3,57 @@ import pandas as pd
 
 def calculate_demographic_data(print_data=True):
     # Read data from file
-    df = None
+    df = pd.read_csv('adult.data.csv')
 
-    # How many of each race are represented in this dataset? This should be a Pandas series with race names as the index labels.
-    race_count = None
+    # 1 How many of each race are represented in this dataset? This should be a Pandas series with race names as the index labels.
+    race_count = df['race'].value_counts()
 
-    # What is the average age of men?
-    average_age_men = None
+    # 2 What is the average age of men?
+    average_age_men = round(df.loc[df['sex'] == 'Male', 'age'].mean(), 1)
 
-    # What is the percentage of people who have a Bachelor's degree?
-    percentage_bachelors = None
+    # 3 What is the percentage of people who have a Bachelor's degree?
+    bachelor = df[df['education'] == 'Bachelors']
+    percentage_bachelors = round(bachelor.shape[0] * 100 / df['education'].value_counts().sum(), 1)
 
     # What percentage of people with advanced education (`Bachelors`, `Masters`, or `Doctorate`) make more than 50K?
     # What percentage of people without advanced education make more than 50K?
-
     # with and without `Bachelors`, `Masters`, or `Doctorate`
-    higher_education = None
-    lower_education = None
-
     # percentage with salary >50K
-    higher_education_rich = None
-    lower_education_rich = None
+   
+    high_education = df[(df['education'] == 'Bachelors') |
+                    (df['education'] == 'Masters') |
+                    (df['education'] == 'Doctorate')]
+    high_education_salary = high_education[high_education['salary'] == '>50K']
+    higher_education_rich = round(high_education_salary.shape[0] * 100 / high_education.shape[0], 1)
 
-    # What is the minimum number of hours a person works per week (hours-per-week feature)?
-    min_work_hours = None
+    
+    low_education = df[(df['education'] != 'Bachelors') &
+                   (df['education'] != 'Masters') &
+                   (df['education'] != 'Doctorate')]
+    low_education_salary = low_education[low_education['salary'] == '>50K']
+    lower_education_rich = round(low_education_salary.shape[0] * 100 / low_education.shape[0], 1)
+    
+    # 6 What is the minimum number of hours a person works per week (hours-per-week feature)?
+    min_work_hours = df['hours-per-week'].min()
 
-    # What percentage of the people who work the minimum number of hours per week have a salary of >50K?
-    num_min_workers = None
+    # 7 What percentage of the people who work the minimum number of hours per week have a salary of >50K?
+    min_hour_workers = df[(df['hours-per-week'] == min_work_hours)]
+    rich_min_hour_workers = min_hour_workers[(min_hour_workers['salary'] == '>50K')]
+    rich_percentage = round(rich_min_hour_workers.shape[0] * 100 / min_hour_workers.shape[0], 1)
+    
+    # 8 What country has the highest percentage of people that earn >50K?
+    pop = df['native-country'].value_counts()
+    rich = df.loc[df['salary'] == '>50K', 'native-country'].value_counts()
 
-    rich_percentage = None
+    country_rich_percentage = pd.DataFrame({'pop_count': pop, 'rich_count': rich})
+    country_rich_percentage['rich_percentage'] = country_rich_percentage['rich_count'] * 100 / country_rich_percentage['pop_count']
 
-    # What country has the highest percentage of people that earn >50K?
-    highest_earning_country = None
-    highest_earning_country_percentage = None
+    highest_earning_country = country_rich_percentage.index[country_rich_percentage['rich_percentage'] == country_rich_percentage['rich_percentage'].max()]
+    highest_earning_country_percentage = round(country_rich_percentage['rich_percentage'].max(), 1)
 
-    # Identify the most popular occupation for those who earn >50K in India.
-    top_IN_occupation = None
+    # 9 Identify the most popular occupation for those who earn >50K in India.
+    rich_india = df.loc[(df['salary'] == '>50K') & (df['native-country'] == 'India'), 'occupation'].value_counts().to_frame()
+    top_IN_occupation = rich_india.iloc[0].name
 
     # DO NOT MODIFY BELOW THIS LINE
 
